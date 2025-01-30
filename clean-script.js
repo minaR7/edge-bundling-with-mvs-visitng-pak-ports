@@ -1,7 +1,7 @@
 const urls = {
   map: "https://gist.githubusercontent.com/d3noob/5193723/raw/world-110m2.json",
-  ports: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/ports-few2.csv",
-  vessel_routes: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/vessel_routes-few2.csv",
+  ports: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/ports2.csv",
+  vessel_routes: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/vessel_routes2.csv",
 };
 
 
@@ -194,6 +194,7 @@ g.ports.selectAll("circle.ports")
   .attr("name", d => d.port_all)
   .attr("long", d => d.longitude) // longitude for the port
   .attr("lat", d => d.latitude) // latitude for the port
+  .attr("connections", d => console.log(d))
   .attr("class", "port")
   .each(function(d) {
     // adds the circle object to the airport data
@@ -222,9 +223,9 @@ g.ports.selectAll("circle.ports")
       .style("pointer-events", "none")
       .html(`
         <strong>Port Name:</strong> ${name}<br>
-        <strong>Coordinates:</strong> (${latitude}, ${longitude})<br>
-        <strong>XY Coordinates:</strong> (${cx}, ${cy})
+        <div>Long, Lat:</div> (${longitude}, ${latitude})
       `);
+      // /        // <p>XY Coordinates:</p> (${cx}, ${cy})
 
     // Position the tooltip near the circle using the circle's cx, cy
     tooltip.style("left", (parseFloat(cx) + 10) + "px") // Add some offset to the tooltip
