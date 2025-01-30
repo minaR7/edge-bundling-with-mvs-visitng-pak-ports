@@ -44,6 +44,12 @@ body {
     stroke-width: 1px;
   }
   
+  .port {
+    fill: white;
+    opacity: 0.6;
+    stroke: #252525;
+  }
+  
   .flight {
     fill: none;
     stroke: #252525;
