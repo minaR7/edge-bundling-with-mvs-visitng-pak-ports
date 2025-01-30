@@ -1,0 +1,77 @@
+body {
+    background-color: white;
+    text-align: center;
+    font-family: sans-serif;
+  }
+
+  svg{
+    width: 100%;
+    height: 96vh;
+    /* display: contents; */
+  }
+
+  g{
+    width: 100vw;
+    height: 900px;
+  }
+
+  #basemap{
+    width: 100vw;
+    height: 900px;
+  }
+
+  .land {
+    fill: #dddddd;
+  }
+  
+  .border {
+    fill: none;
+    stroke-width: 1px;
+  }
+  
+  .interior {
+    stroke: white;
+  }
+  
+  .exterior {
+    stroke: #bbbbbb;
+  }
+  
+  .vessel_routes {
+    fill: none;
+    opacity: 1;
+    stroke: #252525;
+    stroke-width: 1px;
+  }
+  
+  .flight {
+    fill: none;
+    stroke: #252525;
+    stroke-width: 1px;
+    stroke-opacity: 0.1;
+  }
+  
+  .voronoi {
+    fill: none;
+    stroke: none;
+    stroke-width: 1px;
+  }
+  
+  .highlight {
+    opacity: 1 !important;
+    stroke: red !important;
+    stroke-width: 2px !important;
+    stroke-opacity: 0.8 !important;
+  }
+  
+  g#voronoi {
+    pointer-events: all;
+  }
+  
+  /* shadow trick from bl.ocks.org */
+  #tooltip {
+    font-size: 10pt;
+    font-weight: 900;
+    fill: white;
+    text-shadow: 1px 1px 0 #252525, 1px -1px 0 #252525, -1px 1px 0 #252525, -1px -1px 0 #252525;
+  }
