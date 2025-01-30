@@ -2,6 +2,8 @@ const urls = {
   map: "https://gist.githubusercontent.com/d3noob/5193723/raw/world-110m2.json",
   ports: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/ports2.csv",
   vessel_routes: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/vessel_routes2.csv",
+  airports:
+  "https://gist.githubusercontent.com/mbostock/7608400/raw/e5974d9bba45bc9ab272d98dd7427567aafd55bc/airports.csv",
 };
 
 
@@ -21,7 +23,8 @@ const scales = {
   // used to scale airport bubbles
   ports: d3.scaleSqrt()
     .range([4, 18]),
-
+    airports: d3.scaleSqrt()
+    .range([4, 18]),
   // used to scale number of segments per line
   segments: d3.scaleLinear()
     .domain([0, hypotenuse])
@@ -41,7 +44,8 @@ const g = {
   basemap:  svg.select("g#basemap"),
   vessel_routes:  svg.select("g#vessel_routes"),
   ports: svg.select("g#ports"),
-  voronoi:  svg.select("g#voronoi")
+  voronoi:  svg.select("g#voronoi"),
+  airports: svg.select("g#airports"),
 };
 
 const tooltip = d3.select("text#tooltip");
@@ -53,24 +57,27 @@ d3.json(urls.map).then(drawMap);
  // load the airport and flight data together
  const promises = [
   d3.csv(urls.ports, typeAirport),
-  d3.csv(urls.vessel_routes,  typeFlight)
+  d3.csv(urls.vessel_routes,  typeFlight),
+  d3.csv(urls.airports, typeAirport),
 ];
 
 Promise.all(promises).then(processData);
 
 // process airport and flight data
 function processData(values) {
-  console.assert(values.length === 2);
+  console.assert(values.length === 3);
 
   let airports = values[0];
   let flights  = values[1];
+  let old = values[2];
 
   console.log("airports: " + airports.length);
   console.log(" flights: " + flights.length);
 
+  console.log(" old airports: " + old.length);
   // convert airports array (pre filter) into map for fast lookup
   // let iata = new Map(airports.map(node => {console.log(node); [node.key, node]}));
-  let iata = new Map(airports.map(node => {
+  let keyiata = new Map(airports.map(node => {
     // console.log(node);  // Check the node structure
     if (node.key) {
       return [node.key, node];  // Only return valid key-value pairs
@@ -83,8 +90,8 @@ function processData(values) {
   // flights are given by airport iata code (not index)
   flights.forEach(function(link) {
     // console.log(link, iata)
-    link.source = iata.get(link.LPOC);
-    link.target = iata.get(link.PORT);
+    link.source = keyiata.get(link.LPOC);
+    link.target = keyiata.get(link.PORT);
 
     link.source.outgoing += link.count;
     link.target.incoming += link.count;
@@ -99,14 +106,15 @@ function processData(values) {
 
   // done filtering airports can draw
   drawAirports(airports);
-  // drawPolygons(airports);
+  drawAirportsG(old);
+  drawPolygons(old);
 
   // reset map to only include airports post-filter
-  iata = new Map(airports.map(node => [node.iata, node]));
+  keyiata = new Map(airports.map(node => [node.keyiata, node]));
 
   // filter out flights that are not between airports we have leftover
   old = flights.length;
-  flights = flights.filter(link => iata.has(link.source.iata) && iata.has(link.target.iata));
+  flights = flights.filter(link => keyiata.has(link.source.keyiata) && keyiata.has(link.target.keyiata));
   console.log(" removed: " + (old - flights.length) + " flights");
 
   // done filtering flights can draw
@@ -194,7 +202,7 @@ g.ports.selectAll("circle.ports")
   .attr("name", d => d.port_all)
   .attr("long", d => d.longitude) // longitude for the port
   .attr("lat", d => d.latitude) // latitude for the port
-  .attr("connections", d => d.flights)
+  .attr("connections", d => console.log(d))
   .attr("class", "port")
   .each(function(d) {
     // adds the circle object to the airport data
@@ -387,6 +395,81 @@ function generateSegments(nodes, links) {
 
   return bundle;
 }
+function drawPolygons(airports) {
+  // convert array of airports into geojson format
+  const geojson = airports.map(function(airport) {
+    return {
+      type: "Feature",
+      properties: airport,
+      geometry: {
+        type: "Point",
+        coordinates: [airport.longitude, airport.latitude]
+      }
+    };
+  });
+
+  // calculate voronoi polygons
+  const polygons = d3.geoVoronoi().polygons(geojson);
+  console.log(polygons);
+
+  g.voronoi.selectAll("path")
+    .data(polygons.features)
+    .enter()
+    .append("path")
+    .attr("d", d3.geoPath(projection))
+    .attr("class", "voronoi")
+    .on("mouseover", function(d) {
+      let airport = d.properties.site.properties;
+
+      d3.select(airport.bubble)
+        .classed("highlight", true);
+
+      d3.selectAll(airport.flights)
+        .classed("highlight", true)
+        .raise();
+
+      // make tooltip take up space but keep it invisible
+      tooltip.style("display", null);
+      tooltip.style("visibility", "hidden");
+
+      // set default tooltip positioning
+      tooltip.attr("text-anchor", "middle");
+      tooltip.attr("dy", -scales.airports(airport.outgoing) - 4);
+      tooltip.attr("x", airport.x);
+      tooltip.attr("y", airport.y);
+
+      // set the tooltip text
+      tooltip.text(airport.name + " in " + airport.city + ", " + airport.state);
+
+      // double check if the anchor needs to be changed
+      let bbox = tooltip.node().getBBox();
+
+      if (bbox.x <= 0) {
+        tooltip.attr("text-anchor", "start");
+      }
+      else if (bbox.x + bbox.width >= width) {
+        tooltip.attr("text-anchor", "end");
+      }
+
+      tooltip.style("visibility", "visible");
+    })
+    .on("mouseout", function(d) {
+      let airport = d.properties.site.properties;
+
+      d3.select(airport.bubble)
+        .classed("highlight", false);
+
+      d3.selectAll(airport.flights)
+        .classed("highlight", false);
+
+      d3.select("text#tooltip").style("visibility", "hidden");
+    })
+    .on("dblclick", function(d) {
+      // toggle voronoi outline
+      let toggle = d3.select(this).classed("highlight");
+      d3.select(this).classed("highlight", !toggle);
+    });
+}
 
 
 // function drawFlights(airports, flights) {
@@ -559,6 +642,31 @@ function generateSegments(nodes, links) {
 
 // return bundle;
 // }
+function isContinental(state) {
+  const id = parseInt(state.id);
+  return id < 60 && id !== 2 && id !== 15;
+}
+
+function drawAirportsG(airports) {
+  // adjust scale
+  // const extent = d3.extent(airports, d => d.outgoing);
+  // scales.airports.domain(extent);
+
+  // draw airport bubbles
+  g.airports.selectAll("circle.airport")
+    .data(airports, d => d.iata)
+    .enter()
+    .append("circle")
+    .attr("r",  5)
+    .attr("cx", d => d.x) // calculated on load
+    .attr("cy", d => d.y) // calculated on load
+    .attr("class", "airport")
+    .each(function(d) {
+      // adds the circle object to our airport
+      // makes it fast to select airports on hover
+      d.bubble = this;
+    });
+}
 
 function distance(source, target) {
 const dx2 = Math.pow(target.x - source.x, 2);

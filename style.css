@@ -49,6 +49,12 @@ body {
     opacity: 0.6;
     stroke: #252525;
   }
+
+  .airport {
+    fill: white;
+    opacity: 0.6;
+    stroke: #252525;
+  }
   
   .flight {
     fill: none;
