@@ -1,7 +1,7 @@
 const urls = {
   map: "https://gist.githubusercontent.com/d3noob/5193723/raw/world-110m2.json",
-  ports: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/ports2.csv",
-  vessel_routes: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/vessel_routes2.csv",
+  ports: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/ports-few2.csv",
+  vessel_routes: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/vessel_routes-few2.csv",
 };
 
 
@@ -235,10 +235,13 @@ g.ports.selectAll("circle.ports")
     g.vessel_routes.selectAll("path.vessel_routes")
       .filter(function(pathData) {
         
-        console.log(pathData[pathData.length-1])
-        if(pathData[0].port_all === circle.getAttribute("name") || pathData[pathData.length-1].port_all === circle.getAttribute("name"))
-          console.log(pathData[0].port_all, pathData[pathData.length-1].port_all)
-        return pathData[0].port_all === circle.getAttribute("name");
+        // console.log(pathData[pathData.length-1])
+        if(pathData[0].port_all === circle.getAttribute("name"))
+        { console.log(pathData[0].port_all, pathData[pathData.length-1].port_all)
+          return pathData[0].port_all === circle.getAttribute("name")}
+        else if(pathData[pathData.length-1].port_all === circle.getAttribute("name"))
+        {  console.log(pathData[0].port_all, pathData[pathData.length-1].port_all)
+          return pathData[pathData.length-1].port_all === circle.getAttribute("name");}
       })
       .attr("class", "highlight")
       // .style("stroke", "red") // Change path color to red
