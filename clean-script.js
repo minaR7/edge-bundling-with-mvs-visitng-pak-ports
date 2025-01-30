@@ -1,8 +1,9 @@
 const urls = {
   map: "https://gist.githubusercontent.com/d3noob/5193723/raw/world-110m2.json",
-  ports: "http://localhost:8081/ports2.csv",
-  vessel_routes: "http://localhost:8081/vessel_routes2.csv",
+  ports: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/ports2.csv",
+  vessel_routes: "https://minar7.github.io/edge-bundling-with-mvs-visitng-pak-ports/vessel_routes2.csv",
 };
+
 
 console.log(urls)
 console.log(d3.version)
